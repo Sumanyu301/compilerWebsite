@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { z } from "zod";
 import User from "../models/authModel";
 import bcrypt from "bcrypt";
-
+import { generateToken } from "../lib/utils";
 
 const signupSchema = z.object({
   username: z.string().min(5),
@@ -36,10 +36,19 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     password: hashedPassword,
   });
 
-  await user.save;
+  if (user) {
+    const token = generateToken(user._id, res);
+    await user.save;
 
-  res.status(200).json({
-    success: true,
-    message: "Validation successful",
+    res.status(200).json({
+      success: true,
+      message: "Validation successful",
+      user,
+      token,
+    });
+  }
+
+  res.status(500).json({
+    message: "unsuccessful",
   });
 };
