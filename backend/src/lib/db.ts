@@ -8,6 +8,7 @@ export const connectDb = async ()=>{
        }
        const conn = await mongoose.connect(process.env.MONGODB_URL);
        console.log(`MONGODB connected :${conn.connection.host}`);
+       
     }
     catch(e)
     {

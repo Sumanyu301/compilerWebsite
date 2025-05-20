@@ -27,6 +27,15 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       errors: result.error.errors,
     });
   }
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    res.status(409).json({
+      success: false,
+      message: "Email already registered",
+    });
+    return;
+  }
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -38,7 +47,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
   if (user) {
     const token = generateToken(user._id, res);
-    await user.save;
+    await user.save();
 
     res.status(200).json({
       success: true,
@@ -46,9 +55,73 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       user,
       token,
     });
+  } else {
+    res.status(500).json({
+      message: "unsuccessful",
+    });
+  }
+};
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export const login = async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
+
+  const result = loginSchema.safeParse({
+    email,
+    password,
+  });
+
+  if (!result.success) {
+    res.status(400).json({
+      success: false,
+      errors: result.error.errors,
+    });
+    return;
   }
 
-  res.status(500).json({
-    message: "unsuccessful",
-  });
+  try {
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+      return;
+    }
+
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+      return;
+    }
+
+    // Generate JWT token
+    const token = generateToken(user._id, res);
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Login failed",
+    });
+  }
 };
