@@ -4,6 +4,7 @@ import Home from "./components/Home";
 import Compiler from "./components/Compiler";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import About from "./components/About";
 import "./App.css";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Route path="/compiler" element={<Compiler />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/about" element={<About />} />
           </Route>
         </Routes>
       </BrowserRouter>
